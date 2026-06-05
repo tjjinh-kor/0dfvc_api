@@ -1,0 +1,44 @@
+# ──────────────────────────────────────────────────────────
+#  대전청과(주) API 서버 .htaccess
+#  Apache 2.4 / 가비아 웹호스팅
+#
+#  CORS 처리: config/cors.php (PHP 레벨) — .htaccess 에서 중복 설정 안 함
+# ──────────────────────────────────────────────────────────
+
+Options -Indexes
+AddDefaultCharset UTF-8
+
+RewriteEngine On
+
+# ── URL 라우팅: 실제 파일/디렉터리가 아니면 index.php 로 위임
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# ── 내부 디렉터리 직접 접근 차단
+RewriteRule ^(config|includes|db|logs)(/|$) - [F,L]
+
+# ── 민감 파일 차단
+<FilesMatch "\.(env|log|sql|bak|swp|sh|ini)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ── 보안 응답 헤더
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options  "nosniff"
+    Header set X-Frame-Options         "DENY"
+    Header set Referrer-Policy         "strict-origin-when-cross-origin"
+    Header set Cache-Control           "no-cache, no-store, must-revalidate"
+</IfModule>
+
+# ── GZip 압축 (JSON 응답 크기 절감)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE text/plain
+</IfModule>
