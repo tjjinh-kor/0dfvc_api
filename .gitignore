@@ -1,3 +1,4 @@
 /config/db.php
 /logs/
 .user.ini
+*.zip
