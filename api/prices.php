@@ -18,35 +18,41 @@ function getPriceList(): void {
         $date = date('Y-m-d');
     }
 
-    $sql    = 'SELECT id, category, item_name, unit,
-                      today_price, yesterday_price, week_ago_price, recorded_at
+    /* DATE() 래핑: recorded_at 이 DATE/DATETIME/TIMESTAMP 어느 타입이어도 안전하게 비교 */
+    $sql    = 'SELECT category, divi_name, sect_name, weight,
+                      max_price, min_price, avg_price, kg_price,
+                      qty, amt, recorded_at
                FROM prices
-               WHERE recorded_at = :date';
+               WHERE DATE(recorded_at) = :date';
     $params = [':date' => $date];
 
     if ($category !== '') {
         $sql .= ' AND category = :category';
         $params[':category'] = $category;
     }
-    $sql .= ' ORDER BY category, item_name';
+    $sql .= ' ORDER BY category, divi_name, sect_name, weight';
 
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
 
     foreach ($rows as &$row) {
-        $row['today_price']      = (int)$row['today_price'];
-        $row['yesterday_price']  = (int)$row['yesterday_price'];
-        $row['week_ago_price']   = (int)$row['week_ago_price'];
-
-        $prev                    = $row['yesterday_price'];
-        $today                   = $row['today_price'];
-        $row['change_pct']       = $prev > 0 ? round(($today - $prev) / $prev * 100, 1) : 0.0;
-        $row['change_direction'] = $row['change_pct'] > 0 ? 'up' : ($row['change_pct'] < 0 ? 'down' : 'same');
+        $row['max_price'] = (int)$row['max_price'];
+        $row['min_price'] = (int)$row['min_price'];
+        $row['avg_price'] = (int)$row['avg_price'];
+        $row['kg_price']  = (int)$row['kg_price'];
+        $row['weight']    = (float)$row['weight'];
+        $row['qty']       = (int)$row['qty'];
+        $row['amt']       = (int)$row['amt'];
     }
     unset($row);
 
-    Response::success($rows, ['date' => $date, 'count' => count($rows)]);
+    /* 빈 결과도 success:true로 반환 (JS에서 "조회 결과 없음" 처리) */
+    $meta = ['date' => $date, 'count' => count($rows)];
+    if (empty($rows)) {
+        $meta['message'] = '조회 결과가 없습니다.';
+    }
+    Response::success($rows, $meta);
 }
 
 /* ─── GET /api/prices/trend ───────────────────────────────────────────────

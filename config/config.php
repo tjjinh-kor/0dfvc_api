@@ -1,6 +1,6 @@
 <?php
-// ── 환경 자동 감지
-$_api_host    = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+// ── 환경 자동 감지 (HTTP_HOST에 포트가 포함될 수 있으므로 포트 제거 후 비교)
+$_api_host    = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost')[0]);
 $_api_isLocal = in_array($_api_host, ['localhost', '127.0.0.1', '::1'], true)
              || strpos($_api_host, '.local') !== false
              || strpos($_api_host, '.test')  !== false;
@@ -18,6 +18,8 @@ define('ALLOWED_ORIGINS', [
     'https://djcg.co.kr',
     'http://localhost',
     'http://127.0.0.1',
+    'http://localhost:8000',
+    'http://localhost:8001',
 ]);
 
 // DB 접속 정보 로드 (상수 정의)

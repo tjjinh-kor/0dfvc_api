@@ -1,16 +1,14 @@
 <?php
+/* PHP warning/notice가 JSON 앞에 출력되면 파싱 오류 발생 → 응답 중 출력 억제 */
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/cors.php';
 require_once __DIR__ . '/includes/DB.php';
 require_once __DIR__ . '/includes/Response.php';
 
-// 서브폴더 배포 시 베이스 경로 자동 제거 (/new_api → '' 처리)
-$_scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-if ($_scriptDir !== '' && strpos($uri, $_scriptDir) === 0) {
-    $uri = substr($uri, strlen($_scriptDir));
-}
-unset($_scriptDir);
 $uri    = '/' . ltrim($uri, '/');
 $parts  = array_values(array_filter(explode('/', trim($uri, '/'))));
 $method = $_SERVER['REQUEST_METHOD'];
