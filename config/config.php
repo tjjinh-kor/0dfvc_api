@@ -22,5 +22,8 @@ define('ALLOWED_ORIGINS', [
     'http://localhost:8001',
 ]);
 
+// 관리자 API 토큰 (POST/PUT/DELETE 보호용 — 배포 전 반드시 변경)
+define('ADMIN_API_TOKEN', 'djcg_admin_2026_change_me');
+
 // DB 접속 정보 로드 (상수 정의)
 require_once __DIR__ . '/db.php';

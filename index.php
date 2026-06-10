@@ -72,6 +72,20 @@ try {
             getOrganizationMembers();
             break;
 
+        // ─── 경매사 목록 ────────────────────────────────────────────────
+        case 'auctioneers':
+            require_once __DIR__ . '/api/auctioneers.php';
+            if ($method !== 'GET') Response::methodNotAllowed();
+            getAuctioneers();
+            break;
+
+        // ─── 중도매인 목록 ───────────────────────────────────────────────
+        case 'wholesalers':
+            require_once __DIR__ . '/api/wholesalers.php';
+            if ($method !== 'GET') Response::methodNotAllowed();
+            getWholesalers();
+            break;
+
         // ─── 공지사항 목록 & 상세 ────────────────────────────────────────
         case 'notice':
             require_once __DIR__ . '/api/notice.php';
@@ -82,6 +96,22 @@ try {
                 getNoticeDetail((int)$sub);
             } else {
                 getNoticeList();
+            }
+            break;
+
+        // ─── 회사소식 목록 & 상세 / 등록 & 수정 & 삭제 ─────────────────────
+        case 'company_news':
+            require_once __DIR__ . '/api/company_news.php';
+            if ($sub !== '' && ctype_digit($sub)) {
+                $newsId = (int)$sub;
+                if ($method === 'GET')         getCompanyNewsDetail($newsId);
+                elseif ($method === 'PUT')     putCompanyNews($newsId);
+                elseif ($method === 'DELETE')  deleteCompanyNews($newsId);
+                else Response::methodNotAllowed();
+            } else {
+                if ($method === 'GET')        getCompanyNewsList();
+                elseif ($method === 'POST')   postCompanyNews();
+                else Response::methodNotAllowed();
             }
             break;
 
