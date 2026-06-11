@@ -25,5 +25,8 @@ define('ALLOWED_ORIGINS', [
 // 관리자 API 토큰 (POST/PUT/DELETE 보호용 — 배포 전 반드시 변경)
 define('ADMIN_API_TOKEN', 'djcg_admin_2026_change_me');
 
+// Notice 첨부파일 저장 경로 (0dfvc_api 와 0dfvc 가 같은 서버에 있음을 전제)
+define('NOTICE_UPLOAD_DIR', dirname(dirname(__DIR__)) . '/0dfvc/uploads/notice');
+
 // DB 접속 정보 로드 (상수 정의)
 require_once __DIR__ . '/db.php';

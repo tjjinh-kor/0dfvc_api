@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/cors.php';
+require_once __DIR__ . '/includes/mb_compat.php';
 require_once __DIR__ . '/includes/DB.php';
 require_once __DIR__ . '/includes/Response.php';
 
@@ -86,16 +87,19 @@ try {
             getWholesalers();
             break;
 
-        // ─── 공지사항 목록 & 상세 ────────────────────────────────────────
+        // ─── 공지사항 목록 & 상세 / 등록 & 수정 & 삭제 ──────────────────────
         case 'notice':
             require_once __DIR__ . '/api/notice.php';
-            if ($method !== 'GET') {
-                Response::methodNotAllowed();
-            }
             if ($sub !== '' && ctype_digit($sub)) {
-                getNoticeDetail((int)$sub);
+                $noticeId = (int)$sub;
+                if ($method === 'GET')        getNoticeDetail($noticeId);
+                elseif ($method === 'PUT')    putNotice($noticeId);
+                elseif ($method === 'DELETE') deleteNotice($noticeId);
+                else Response::methodNotAllowed();
             } else {
-                getNoticeList();
+                if ($method === 'GET')      getNoticeList();
+                elseif ($method === 'POST') postNotice();
+                else Response::methodNotAllowed();
             }
             break;
 
