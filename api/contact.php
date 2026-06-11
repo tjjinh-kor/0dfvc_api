@@ -71,8 +71,13 @@ function submitContact(): void {
     );
     $stmt->execute([$name, $email, $phone, $subject, $content, $ip]);
 
+    $insertedId = (int)$db->lastInsertId();
+    if ($insertedId < 1) {
+        Response::error('문의 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.', 500);
+    }
+
     Response::success(
-        ['message' => '문의가 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.'],
+        ['id' => $insertedId, 'message' => '문의가 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.'],
         [],
         201
     );
