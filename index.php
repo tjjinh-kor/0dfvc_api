@@ -119,6 +119,20 @@ try {
             }
             break;
 
+        // ─── 부적합농산물공시 ─────────────────────────────────────────────
+        case 'unfit':
+            require_once __DIR__ . '/api/unfit.php';
+            if ($method !== 'GET') Response::methodNotAllowed();
+            getUnfitList();
+            break;
+
+        // ─── 미수령상품대공시 ─────────────────────────────────────────────
+        case 'unclaimed':
+            require_once __DIR__ . '/api/unclaimed.php';
+            if ($method !== 'GET') Response::methodNotAllowed();
+            getUnclaimedList();
+            break;
+
         // ─── 문의하기 ────────────────────────────────────────────────────
         case 'contact':
             require_once __DIR__ . '/api/contact.php';
