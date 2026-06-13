@@ -14,17 +14,20 @@ SET time_zone = '+09:00';
 --    GET /api/prices
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS prices (
-    id               INT UNSIGNED     NOT NULL AUTO_INCREMENT,
-    category         VARCHAR(30)      NOT NULL COMMENT '대분류 (과일/채소/기타)',
-    item_name        VARCHAR(50)      NOT NULL COMMENT '품목명',
-    unit             VARCHAR(20)      NOT NULL DEFAULT 'kg' COMMENT '단위',
-    today_price      INT UNSIGNED     NOT NULL DEFAULT 0    COMMENT '금일 평균가 (원/단위)',
-    yesterday_price  INT UNSIGNED     NOT NULL DEFAULT 0    COMMENT '전일 평균가 (원/단위)',
-    week_ago_price   INT UNSIGNED     NOT NULL DEFAULT 0    COMMENT '전주 평균가 (원/단위)',
-    recorded_at      DATE             NOT NULL              COMMENT '시세 기준일',
-    created_at       DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id          INT              NOT NULL AUTO_INCREMENT COMMENT '내부 번호',
+    category    VARCHAR(30)      NOT NULL               COMMENT '대분류 (과일/채소/기타)',
+    divi_name   VARCHAR(50)      NOT NULL               COMMENT '품목명(대) 예: 감귤',
+    sect_name   VARCHAR(50)      NOT NULL DEFAULT ''    COMMENT '품목명(소) 예: 만다린',
+    weight      DECIMAL(5,1)     NOT NULL DEFAULT 0.0   COMMENT '중량(kg)',
+    max_price   INT              NOT NULL DEFAULT 0     COMMENT '최고가(원/단)',
+    min_price   INT              NOT NULL DEFAULT 0     COMMENT '최저가(원/단)',
+    avg_price   INT              NOT NULL DEFAULT 0     COMMENT '평균단가(원/단)',
+    kg_price    INT              NOT NULL DEFAULT 0     COMMENT 'KG평균단가',
+    qty         INT              NOT NULL DEFAULT 0     COMMENT '반입수량',
+    amt         BIGINT           NOT NULL DEFAULT 0     COMMENT '반입금액',
+    recorded_at DATE             NOT NULL               COMMENT '시세 기준일',
+    created_at  DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_item_date (item_name, recorded_at),
     KEY idx_recorded_at (recorded_at),
     KEY idx_category    (category)
 ) ENGINE=InnoDB
@@ -204,6 +207,37 @@ CREATE TABLE IF NOT EXISTS unfit_products (
   COMMENT='부적합농산물공시';
 
 -- ──────────────────────────────────────────────────────────
+-- 9. 중도매인 (wholesalers)
+--    GET    /api/wholesalers
+--    POST   /api/wholesalers         (인증 필요)
+--    PUT    /api/wholesalers/{id}    (인증 필요)
+--    DELETE /api/wholesalers/{id}    (인증 필요)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS wholesalers (
+    brokcode       VARCHAR(5)    NOT NULL               COMMENT '중도매인번호 (PK)',
+    id             INT UNSIGNED  NOT NULL AUTO_INCREMENT COMMENT '내부 번호',
+    category       VARCHAR(10)   NOT NULL               COMMENT '부류 (과일/채소)',
+    company_name   VARCHAR(100)  NOT NULL               COMMENT '상호명',
+    representative VARCHAR(50)       NULL DEFAULT NULL  COMMENT '대표자',
+    items          VARCHAR(255)      NULL DEFAULT NULL  COMMENT '취급품목',
+    phone          VARCHAR(30)       NULL DEFAULT NULL  COMMENT '연락처',
+    website_url    VARCHAR(255)      NULL DEFAULT NULL  COMMENT '홍보 사이트',
+    note           VARCHAR(255)      NULL DEFAULT NULL  COMMENT '비고',
+    sort_order     INT           NOT NULL DEFAULT 0     COMMENT '정렬순서 (오름차순)',
+    is_active      TINYINT(1)    NOT NULL DEFAULT 1     COMMENT '노출 여부',
+    created_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                         ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (brokcode),
+    UNIQUE KEY uq_id (id),
+    KEY idx_category   (category),
+    KEY idx_sort_order (sort_order)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+  COMMENT='중도매인 소개';
+
+-- ──────────────────────────────────────────────────────────
 -- 초기 데이터 (개발/테스트용)
 -- ──────────────────────────────────────────────────────────
 
@@ -212,14 +246,12 @@ INSERT INTO notice (title, content, author, is_pinned) VALUES
 ('2024년 추석 연휴 경매 일정 안내', '<p>추석 연휴 기간 경매 일정을 안내해 드립니다.</p>', '관리자', 0),
 ('전자송품장 서비스 이용 안내', '<p>전자송품장 서비스 이용 방법을 안내해 드립니다.</p>', '관리자', 0);
 
-INSERT INTO prices (category, item_name, unit, today_price, yesterday_price, week_ago_price, recorded_at) VALUES
-('과일', '사과 (후지)',  '10kg', 42000, 41000, 40000, CURDATE()),
-('과일', '배 (원황)',    '15kg', 55000, 54000, 53000, CURDATE()),
-('과일', '감귤',         '5kg',  18000, 18500, 17000, CURDATE()),
-('채소', '배추',         '포기', 4500,  4200,  4000,  CURDATE()),
-('채소', '무',           '개',   1800,  1900,  1700,  CURDATE()),
-('채소', '대파',         'kg',   3200,  3100,  3000,  CURDATE()),
-('기타', '고추 (청양)',  'kg',   12000, 11500, 11000, CURDATE()),
-('기타', '마늘',         'kg',   8500,  8300,  8000,  CURDATE());
+INSERT INTO prices (category, divi_name, sect_name, weight, max_price, min_price, avg_price, kg_price, qty, amt, recorded_at) VALUES
+('과일', '사과', '후지',  10.0, 45000, 38000, 42000, 4200, 120, 5040000, CURDATE()),
+('과일', '배',   '원황',  15.0, 58000, 51000, 55000, 3670, 80,  4400000, CURDATE()),
+('과일', '감귤', '온주',   5.0, 20000, 15000, 18000, 3600, 200, 3600000, CURDATE()),
+('채소', '배추', '',       1.0,  5000,  4000,  4500, 4500, 500, 2250000, CURDATE()),
+('채소', '무',   '',       1.0,  2000,  1600,  1800, 1800, 400,  720000, CURDATE()),
+('채소', '대파', '',       1.0,  3500,  2800,  3200, 3200, 300,  960000, CURDATE());
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -80,11 +80,19 @@ try {
             getAuctioneers();
             break;
 
-        // ─── 중도매인 목록 ───────────────────────────────────────────────
+        // ─── 중도매인 목록/등록/수정/삭제 ─────────────────────────────────
         case 'wholesalers':
             require_once __DIR__ . '/api/wholesalers.php';
-            if ($method !== 'GET') Response::methodNotAllowed();
-            getWholesalers();
+            if ($sub !== '' && ctype_digit($sub)) {
+                $wholesalerId = (int)$sub;
+                if ($method === 'PUT')        putWholesaler($wholesalerId);
+                elseif ($method === 'DELETE') deleteWholesaler($wholesalerId);
+                else Response::methodNotAllowed();
+            } else {
+                if ($method === 'GET')        getWholesalers();
+                elseif ($method === 'POST')   postWholesaler();
+                else Response::methodNotAllowed();
+            }
             break;
 
         // ─── 공지사항 목록 & 상세 / 등록 & 수정 & 삭제 ──────────────────────
@@ -131,6 +139,13 @@ try {
             require_once __DIR__ . '/api/unclaimed.php';
             if ($method !== 'GET') Response::methodNotAllowed();
             getUnclaimedList();
+            break;
+
+        // ─── 사회공헌 활동사진 ───────────────────────────────────────────
+        case 'social-gallery':
+            require_once __DIR__ . '/api/social_gallery.php';
+            if ($method !== 'GET') Response::methodNotAllowed();
+            getSocialGallery();
             break;
 
         // ─── 문의하기 ────────────────────────────────────────────────────
